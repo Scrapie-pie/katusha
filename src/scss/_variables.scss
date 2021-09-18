@@ -1,0 +1,79 @@
+@import "_functions";
+
+$_fs: 16px;
+$variables: (
+  // add general line-height
+  // add global font-size
+  // mb add general text margin-bottom
+  // add bg-color
+  // add general color
+  // add transition
+  // add base font-size (16px)
+  container: 1530px,
+  font-size: (
+    base: $_fs,
+    h1: relative-font(72px),
+    h2: relative-font(36px),
+    h3: relative-font(28px),
+    h4: relative-font(24px),
+    h5: relative-font(18px),
+    h6: relative-font(16px),
+    // h1_mobile: relative-font(50px),
+    // h2_mobile: relative-font(10px),
+    // h3_mobile: relative-font(10px),
+    // h4_mobile: relative-font(10px),
+    // h5_mobile: relative-font(10px),
+    // h6_mobile: relative-font(10px),
+  ),
+  space: (
+    xxl: 180px,
+    xl:  120px,
+    lg:  100px,
+    md:  60px,
+    sm:  50px,
+    xs: 40px,
+    micro-xxl: 40px,
+    micro-xl:  30px,
+    micro-lg:  20px,
+    micro-md:  15px,
+    micro-sm:  10px,
+
+    //170
+    //150
+    //140
+    //130
+    //120
+    //100
+    //70
+    //50
+    //45
+    //40
+    //35
+    //30
+
+    //25
+    //20
+    //15
+    //10
+  ),
+  breakpoint: (
+    xs:  320px,
+  	sm:  576px,
+  	md:  768px,
+    // 500
+    // 600
+  	lg:  992px,
+  	xl:  1200px,
+  	xxl: 1400px,
+  ),
+  color: (
+    red:   #EB5246,
+    blue:  #008DD2,
+    black: #000000,
+    grey_dark: #5C6366,
+    grey: #E4ECF4,
+    grey_light: #F8F9FA,
+    light: #BDD1E4,
+    white: #ffffff,
+  ),
+);

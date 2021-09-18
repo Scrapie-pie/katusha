@@ -1,0 +1,321 @@
+@use "sass:math";
+@use "sass:list";
+
+@import "_variables";
+@import "_functions";
+
+
+
+
+
+
+@mixin css-variables {
+	//$project-name: 'katusha';
+  $prefix: '--';
+
+	@each $key, $value in $variables {
+    @if is-map($value) {
+      //-- ↓ #{$key}:↓ ;
+      @each $map-key, $map-value in $value {
+  			#{$prefix}#{$key}_#{$map-key}: #{$map-value};
+  		}
+    }
+    @else {
+      #{$prefix}#{$key}: #{$value};
+    }
+	}
+}
+
+@mixin font-face-props($path, $font, $weight-value, $weight-name, $ext, $italic: false) { // remove $path; mb replace on func
+  $format: '';
+
+  @if $ext == 'woff' {
+    $format: 'woff';
+  } @else if $ext == 'woff2' {
+    $format: 'woff2';
+  } @else if $ext == 'ttf' {
+    $format: 'truetype';
+  } @else if $ext == 'otf' {
+    $format: 'opentype';
+  } @else if $ext == 'eot' {
+    $format: 'embedded-opentype'
+  } @else if $ext == 'svg' {
+    $format: 'svg';
+  }
+
+  font-family: $font;
+  font-display: auto;
+  unicode-range: U+000-5FF;
+  font-weight: $weight-value;
+  @if $italic {
+    font-style: italic;
+    src: local($font), // must init once
+         url('#{$path}/#{$font}/#{$font}-#{$weight-name}Italic.#{$ext}') format($format),
+  } @else {
+    font-style: normal;
+    src: local($font), // must init once
+         url('#{$path}/#{$font}/#{$font}-#{$weight-name}.#{$ext}') format($format),
+  }
+}
+
+@mixin setup-font($path, $font, $exts, $italic: false) { // Use prebuild.js first ; *remove $path*
+  $weights: (
+    100: 'Thin',
+    200: 'ExtraLight',
+    300: 'Light',
+    400: 'Regular',
+    500: 'Medium',
+    600: 'SemiBold',
+    700: 'Bold',
+    800: 'ExtraBold',
+    900: 'Black',
+  );
+
+  @each $ext in $exts {
+    @each $weight-value, $weight-name in $weights {
+      @font-face {
+        @include font-face-props($path, $font, $weight-value, $weight-name, $ext);
+        @if $italic {
+          @include font-face-props($path, $font, $weight-value, $weight-name, $ext, true);
+        }
+      }
+    }
+  }
+}
+
+@mixin liquid-font($min-vw: get-variable(breakpoint, xs), $max-vw: get-variable(container), $min-font-size, $max-font-size) {
+  $min-vw: to-unit($min-vw, 'px');
+  $max-vw: to-unit($max-vw, 'px');
+  $min-font-size: to-unit($min-font-size, 'px');
+  $max-font-size: to-unit($max-font-size, 'px');
+
+  @media (max-width: $min-vw) { // replace on custom
+    font-size: $min-font-size;
+  }
+
+  @media (min-width: $min-vw) and (max-width: $max-vw) { // replace on custom
+    font-size: calc(#{$min-font-size} + #{strip-unit($max-font-size - $min-font-size)} * ((100vw - #{$min-vw}) / #{strip-unit($max-vw - $min-vw)}));
+  }
+
+  @media (min-width: $max-vw) { // replace on custom
+    font-size: $max-font-size;
+  }
+}
+
+@mixin h($level, $color: null, $weight: false, $margin-bottom: null, $upper: false, $relative: true) {
+  $line-height: 1.22em;
+  // line-height: 1.22em; <- sometimes there's
+  //word-break: break-word;
+  // @if $line-height {
+  //   @if ($relative) {
+  //     line-height:
+  //   } @else {
+  //     line-height: $line-height;
+  //   }
+  // }
+
+  $max-variable: get-variable(font-size, h#{$level});
+  $min-variable: get-variable(font-size, h#{$level}_mobile);
+
+  @if ($relative and $min-variable) {
+    $min: to-unit($min-variable, 'px');
+    $max: to-unit($max-variable, 'px');
+    @include liquid-font($min-font-size: $min, $max-font-size: $max);
+  } @else {
+    font-size: $max-variable;
+  }
+
+
+  line-height: $line-height;
+
+  @if ($color) {
+    color: $color;
+  } @else {
+  }
+
+  @if ($margin-bottom) {
+    @if $margin-bottom == default {
+      margin-bottom: 1em; // must be global variable; mb remove?
+    } @else {
+      @if ($relative) {
+        margin-bottom: to-fixed(to-unit($margin-bottom, 'em', to-unit($max-variable, 'px')));
+      } @else {
+        margin-bottom: $margin-bottom;
+      }
+    }
+  }
+
+  @if ($upper) {
+    text-transform: uppercase;
+  }
+
+  @if $weight {
+    @if type-of($weight) == 'number' {
+      font-weight: $weight;
+    } @else if $weight == bold {
+      font-weight: 700; // mb replace on something
+    }
+
+  } @else {
+    //font-weight: 400; // mb replace on something
+  }
+
+  // &:not(.font_bold) {
+  //   @if $bold {
+  //     font-weight: 700; // mb replace on something
+  //   } @else {
+  //     font-weight: 400; // mb replace on something
+  //   }
+  // }
+}
+
+
+
+
+
+
+@mixin container {
+  max-width: calc(#{get-variable(container)} + 30px);
+  width: 100%;
+  margin-right: auto;
+  margin-left:  auto;
+  padding-left:  15px;
+  padding-right: 15px;
+}
+
+
+
+@mixin grid($min:null, $max:null, $gap:30px, $fit: true) {
+  display: grid;
+  gap: $gap;
+
+  @if ($min and $max) {
+    @if ($fit) {
+      grid-template-columns: repeat(auto-fit, minmax($min, $max));
+    } @else {
+      grid-template-columns: repeat(auto-fill, minmax($min, $max));
+    }
+  } @else if ($min) {
+    @if ($fit) {
+      grid-template-columns: repeat(auto-fit, minmax($min, 1fr));
+    } @else {
+      grid-template-columns: repeat(auto-fill, minmax($min, 1fr));
+    }
+  } @else if ($max) {
+    @if ($fit) {
+      grid-template-columns: repeat(auto-fit, minmax(auto, $max));
+    } @else {
+      grid-template-columns: repeat(auto-fill, minmax(auto, $max));
+    }
+  }
+}
+
+
+@mixin flex-container($axis: row, $gap: null, $inline: false, $collapse: false) {
+  @if $inline {
+    display: inline-flex;
+  } @else {
+    display: flex;
+  }
+
+  flex-direction: $axis;
+
+  @if $gap {
+    grid-gap: $gap;
+  }
+
+  @if $collapse {
+    & > * {
+      @if $axis == row {
+        margin-right: 0;
+        margin-left: 0;
+      } @else {
+        margin-top: 0;
+        margin-bottom: 0;
+      }
+    }
+  }
+}
+
+@mixin flex-centralize($inline: false) {
+  @if $inline {
+    display: inline-flex;
+  } @else {
+    display: flex;
+  }
+
+  align-items: center;
+  justify-content: center;
+}
+
+@mixin reversible-grid() {
+  & > * {
+    &:odd {
+      grid-template-columns: 450px minmax(450px, 810px);
+    }
+    &:even {
+      grid-template-columns: minmax(450px, 810px) 450px;
+      order: -1;
+    }
+  }
+}
+
+
+// @mixin media($viewport:null, $min:null, $max:null) {
+//   @if $viewport or $min and $max {
+//     @media (
+//       (min-width: get-variable(viewport, $viewport or $min)) and
+//       (max-width: get-variable(viewport, $viewport or $max) - 1px)
+//     ) {
+//       @content;
+//     }
+//   } @else if $min {
+//     @media (min-width: get-variable(viewport, $min)) {
+//       @content;
+//     }
+//   } @else if $max {
+//     @media (max-width: get-variable(viewport, $max) - 1px) {
+//       @content;
+//     }
+//   }
+// }
+
+@mixin wrapper() {}; // compare el__wrapper with el__container styles
+
+@mixin create-figure($size, $color: null, $radius: null, $border-size: null, $border-color: $color) {
+  width:  100%;
+  height: 100%;
+  min-width:  #{$size}px;
+  max-width:  #{$size}px;
+  min-height: #{$size}px;
+  max-height: #{$size}px;
+
+  @if $color {
+    background-color: $color;
+  }
+
+  @if $border-size {
+    border-width: #{$border-size}px;
+    border-style: solid;
+  }
+
+  @if $border-color {
+    border-color: $border-color;
+  }
+
+  @if $radius {
+    border-radius: $radius;
+  }
+}
+
+
+@mixin truncate($count) {
+  display: -webkit-box;
+  -webkit-line-clamp: $count;
+  -webkit-box-orient: vertical;
+
+  overflow: hidden;
+}
+
+// @mixin fade-in { animation: animation-fade-in 350ms ease-in-out both }
+// @mixin fade-out { animation: animation-fade-out 350ms ease-in-out both }
